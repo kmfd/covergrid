@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Covergrid</title>
+  <style>
+    body {
+      background-color: #f5f5f5;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+  .container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-gap: 40px;
+      padding: 40px;
+    }
+
+  .book-cover {
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+      transition: transform 0.3s ease;
+      margin: 0;
+      padding: 0;
+    }
+
+  .book-cover:hover {
+      transform: translateY(-5px);
+    }
+
+  .book-cover img {
+      height: 100%;
+      width: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="book-covers"></div>
+
+  <script>
+    function getBookCovers() {
+      return new Promise((resolve, reject) => {
+        fetch('get_book_covers.php')
+        .then(response => response.json())
+        .then(bookCovers => resolve(bookCovers))
+        .catch(error => reject(error));
+      });
+    }
+
+    getBookCovers()
+    .then(bookCovers => {
+        const container = document.getElementById('book-covers');
+
+        bookCovers.forEach(cover => {
+          const bookCover = document.createElement('div');
+          bookCover.classList.add('book-cover');
+
+          const img = document.createElement('img');
+          img.src = `covers/${cover}`;
+          img.alt = cover;
+
+          bookCover.appendChild(img);
+          container.appendChild(bookCover);
+        });
+
+        container.addEventListener('dragover', event => {
+          event.preventDefault();
+        });
+
+        container.addEventListener('drop', event => {
+          event.preventDefault();
+          const files = event.dataTransfer.files;
+
+          Array.from(files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              const bookCover = document.createElement('div');
+              bookCover.classList.add('book-cover');
+
+              const img = document.createElement('img');
+              img.src = reader.result;
+              img.alt = file.name;
+
+              bookCover.appendChild(img);
+              container.appendChild(bookCover);
+            };
+            reader.readAsDataURL(file);
+          });
+        });
+      })
+    .catch(error => console.error(error));
+  </script>
+</body>
+</html>
