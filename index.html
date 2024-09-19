@@ -10,91 +10,126 @@
       padding: 0;
     }
 
-  .container {
+    .container {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       grid-gap: 40px;
       padding: 40px;
+      max-width: 100%; /* Ensure the container can expand */
+      margin: 0 auto; /* Center the container */
+	  width: 750px;
     }
 
-  .book-cover {
+    .cover {
       position: relative;
       overflow: hidden;
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.7); /* Darker shadow */
       transition: transform 0.3s ease;
       margin: 0;
       padding: 0;
+      border-radius: 10px; /* Add rounded corners to the book cover */
     }
 
-  .book-cover:hover {
+    .cover:hover {
       transform: translateY(-5px);
     }
 
-  .book-cover img {
+    .cover img {
       height: 100%;
       width: 100%;
       object-fit: cover;
       object-position: center;
       display: block;
       margin: 0;
+      border-radius: 10px; /* Ensure the image has rounded corners */
     }
+	
+	
   </style>
 </head>
 <body>
-  <div class="container" id="book-covers"></div>
+  
+  <label for="container-width">Container Width:</label>
+  <input type="range" id="container-width" min="300" max="1200" value="750" />
+  <div class="container" id="covers"></div>
 
   <script>
-    function getBookCovers() {
+    // Function to update the grid container width based on the slider value
+    function updateContainerWidth(value) {
+      const container = document.querySelector('.container');
+      container.style.width = `${value}px`; // Set the width of the container
+    }
+
+    // Event listener for the slider
+    document.getElementById('container-width').addEventListener('input', function() {
+      updateContainerWidth(this.value);
+    });
+	
+    function getCovers() {
       return new Promise((resolve, reject) => {
-        fetch('get_book_covers.php')
+        fetch('get_covers.php')
         .then(response => response.json())
-        .then(bookCovers => resolve(bookCovers))
+        .then(covers => resolve(covers))
         .catch(error => reject(error));
       });
     }
+	
+    getCovers()
+    .then(covers => {
+        const container = document.getElementById('covers');
 
-    getBookCovers()
-    .then(bookCovers => {
-        const container = document.getElementById('book-covers');
+        covers.forEach(cover => {
+            const bookCover = document.createElement('div');
+            bookCover.classList.add('cover');
 
-        bookCovers.forEach(cover => {
-          const bookCover = document.createElement('div');
-          bookCover.classList.add('book-cover');
+            const img = document.createElement('img');
+            img.src = `covers/${cover}`;
+            img.alt = cover;
 
-          const img = document.createElement('img');
-          img.src = `covers/${cover}`;
-          img.alt = cover;
-
-          bookCover.appendChild(img);
-          container.appendChild(bookCover);
+            bookCover.appendChild(img);
+            container.appendChild(bookCover);
         });
 
-        container.addEventListener('dragover', event => {
-          event.preventDefault();
+        // Add dragover event to the document
+        document.addEventListener('dragover', event => {
+            event.preventDefault(); // Prevent default to allow drop
         });
 
-        container.addEventListener('drop', event => {
-          event.preventDefault();
-          const files = event.dataTransfer.files;
+        // Add drop event to the document
+        document.addEventListener('drop', event => {
+            event.preventDefault(); // Prevent default behavior
 
-          Array.from(files).forEach(file => {
-            const reader = new FileReader();
-            reader.onload = () => {
-              const bookCover = document.createElement('div');
-              bookCover.classList.add('book-cover');
+            const files = event.dataTransfer.files;
 
-              const img = document.createElement('img');
-              img.src = reader.result;
-              img.alt = file.name;
+            // Remove no-cover.png if present
+            const noCoverIndex = covers.indexOf('../no-cover.png');
+            if (noCoverIndex !== -1) {
+                covers.splice(noCoverIndex, 1);
+                const noCoverElement = Array.from(container.children).find(child => child.querySelector('img').alt === '../no-cover.png');
+                if (noCoverElement) {
+                    container.removeChild(noCoverElement);
+                }
+            }
 
-              bookCover.appendChild(img);
-              container.appendChild(bookCover);
-            };
-            reader.readAsDataURL(file);
-          });
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const bookCover = document.createElement('div');
+                    bookCover.classList.add('cover');
+
+                    const img = document.createElement('img');
+                    img.src = reader.result;
+                    img.alt = file.name;
+
+                    bookCover.appendChild(img);
+                    container.appendChild(bookCover);
+                };
+                reader.readAsDataURL(file);
+            });
         });
-      })
+    })
     .catch(error => console.error(error));
+
   </script>
 </body>
 </html>
