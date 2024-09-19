@@ -19,3 +19,7 @@ A simple grid display for images such as book covers or movie posters, trading c
 1. Clone the repository to your local machine or download the zip file.
 2. If hosting yourself, place images in the `covers` folder to automatically add them to the grid.
 3. Open `index.html` in your web browser to view the grid.
+
+## License
+
+This project is licensed under the GNU General Public License v3.0 (GPL-3.0). This means that the source code and any modifications to it must be made available under the same GPL-3.0 license.
