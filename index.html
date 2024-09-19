@@ -56,71 +56,71 @@
   <script>
     // Function to update the grid container width based on the slider value
     function updateContainerWidth(value) {
-      const container = document.querySelector('.container');
-      container.style.width = `${value}px`; // Set the width of the container
+        const container = document.querySelector('.container');
+        container.style.width = `${value}px`; // Set the width of the container
     }
 
     // Event listener for the slider
-    document.getElementById('container-width').addEventListener('input', function() {
-      updateContainerWidth(this.value);
+    document.getElementById('container-width').addEventListener('input', function () {
+        updateContainerWidth(this.value);
     });
-	
-	function getCovers() {
-	  return fetch('get_covers.php')
-		.then(response => {
-		  // Check if the response is OK (status in the range 200-299)
-		  if (!response.ok) {
-			console.warn("Error: Resource not found or other error occurred. Status:", response.status);
-			return []; // Return an empty array if the resource is not found
-		  }
-		  return response.text(); // Read the response as text first
-		})
-		.then(text => {
-		  try {
-			return JSON.parse(text); // Attempt to parse the text as JSON
-		  } catch (error) {
-			console.warn("Failed to parse JSON:", error);
-			return []; // Return an empty array if JSON parsing fails
-		  }
-		})
-		.catch(error => {
-		  console.error("Fetch error:", error);
-		  return []; // Return an empty array on fetch error
-		});
-	}
-		
-	// Fetch covers from the server
-	getCovers()
-	.then(covers => {
-		const container = document.getElementById('covers');
 
-		// Check if there are no images from the covers directory
-		if (covers.length === 0) {
-			// If no images found, include no-cover.png from the root directory
-			const noCoverElement = document.createElement('div');
-			noCoverElement.classList.add('cover');
+    function getCovers() {
+        return fetch('get_covers.php')
+        .then(response => {
+            // Check if the response is OK (status in the range 200-299)
+            if (!response.ok) {
+                console.warn("Error: Resource not found or other error occurred. Status:", response.status);
+                return []; // Return an empty array if the resource is not found
+            }
+            return response.text(); // Read the response as text first
+        })
+        .then(text => {
+            try {
+                return JSON.parse(text); // Attempt to parse the text as JSON
+            } catch (error) {
+                console.warn("Failed to parse JSON:", error);
+                return []; // Return an empty array if JSON parsing fails
+            }
+        })
+        .catch(error => {
+            console.error("Fetch error:", error);
+            return []; // Return an empty array on fetch error
+        });
+    }
 
-			const img = document.createElement('img');
-			img.src = 'no-cover.png';
-			img.alt = 'no-cover.png';
+    // Fetch covers from the server
+    getCovers()
+    .then(covers => {
+        const container = document.getElementById('covers');
 
-			noCoverElement.appendChild(img);
-			container.appendChild(noCoverElement);
-			covers.push('no-cover.png'); // Add to the array
-		} else {
-			// Iterate over the covers array and create elements for each cover
-			covers.forEach(cover => {
-				const bookCover = document.createElement('div');
-				bookCover.classList.add('cover');
+        // Check if there are no images from the covers directory
+        if (covers.length === 0) {
+            // If no images found, include no-cover.png from the root directory
+            const noCoverElement = document.createElement('div');
+            noCoverElement.classList.add('cover');
 
-				const img = document.createElement('img');
-				img.src = `covers/${cover}`;
-				img.alt = cover;
+            const img = document.createElement('img');
+            img.src = 'no-cover.png';
+            img.alt = 'no-cover.png';
 
-				bookCover.appendChild(img);
-				container.appendChild(bookCover);
-			});
-		}
+            noCoverElement.appendChild(img);
+            container.appendChild(noCoverElement);
+            covers.push('no-cover.png'); // Add to the array
+        } else {
+            // Iterate over the covers array and create elements for each cover
+            covers.forEach(cover => {
+                const newCover = document.createElement('div');
+                newCover.classList.add('cover');
+
+                const img = document.createElement('img');
+                img.src = `covers/${cover}`;
+                img.alt = cover;
+
+                newCover.appendChild(img);
+                container.appendChild(newCover);
+            });
+        }
 
         // Add dragover event to the document
         document.addEventListener('dragover', event => {
@@ -146,22 +146,21 @@
             Array.from(files).forEach(file => {
                 const reader = new FileReader();
                 reader.onload = () => {
-                    const bookCover = document.createElement('div');
-                    bookCover.classList.add('cover');
+                    const newCover = document.createElement('div');
+                    newCover.classList.add('cover');
 
                     const img = document.createElement('img');
                     img.src = reader.result;
                     img.alt = file.name;
 
-                    bookCover.appendChild(img);
-                    container.appendChild(bookCover);
+                    newCover.appendChild(img);
+                    container.appendChild(newCover);
                 };
                 reader.readAsDataURL(file);
             });
         });
     })
     .catch(error => console.error(error));
-
   </script>
 </body>
 </html>
