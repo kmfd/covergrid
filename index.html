@@ -65,30 +65,62 @@
       updateContainerWidth(this.value);
     });
 	
-    function getCovers() {
-      return new Promise((resolve, reject) => {
-        fetch('get_covers.php')
-        .then(response => response.json())
-        .then(covers => resolve(covers))
-        .catch(error => reject(error));
-      });
-    }
-	
-    getCovers()
-    .then(covers => {
-        const container = document.getElementById('covers');
+	function getCovers() {
+	  return fetch('get_covers.php')
+		.then(response => {
+		  // Check if the response is OK (status in the range 200-299)
+		  if (!response.ok) {
+			console.warn("Error: Resource not found or other error occurred. Status:", response.status);
+			return []; // Return an empty array if the resource is not found
+		  }
+		  return response.text(); // Read the response as text first
+		})
+		.then(text => {
+		  try {
+			return JSON.parse(text); // Attempt to parse the text as JSON
+		  } catch (error) {
+			console.warn("Failed to parse JSON:", error);
+			return []; // Return an empty array if JSON parsing fails
+		  }
+		})
+		.catch(error => {
+		  console.error("Fetch error:", error);
+		  return []; // Return an empty array on fetch error
+		});
+	}
+		
+	// Fetch covers from the server
+	getCovers()
+	.then(covers => {
+		const container = document.getElementById('covers');
 
-        covers.forEach(cover => {
-            const bookCover = document.createElement('div');
-            bookCover.classList.add('cover');
+		// Check if there are no images from the covers directory
+		if (covers.length === 0) {
+			// If no images found, include no-cover.png from the root directory
+			const noCoverElement = document.createElement('div');
+			noCoverElement.classList.add('cover');
 
-            const img = document.createElement('img');
-            img.src = `covers/${cover}`;
-            img.alt = cover;
+			const img = document.createElement('img');
+			img.src = 'no-cover.png';
+			img.alt = 'no-cover.png';
 
-            bookCover.appendChild(img);
-            container.appendChild(bookCover);
-        });
+			noCoverElement.appendChild(img);
+			container.appendChild(noCoverElement);
+			covers.push('no-cover.png'); // Add to the array
+		} else {
+			// Iterate over the covers array and create elements for each cover
+			covers.forEach(cover => {
+				const bookCover = document.createElement('div');
+				bookCover.classList.add('cover');
+
+				const img = document.createElement('img');
+				img.src = `covers/${cover}`;
+				img.alt = cover;
+
+				bookCover.appendChild(img);
+				container.appendChild(bookCover);
+			});
+		}
 
         // Add dragover event to the document
         document.addEventListener('dragover', event => {
@@ -102,10 +134,10 @@
             const files = event.dataTransfer.files;
 
             // Remove no-cover.png if present
-            const noCoverIndex = covers.indexOf('../no-cover.png');
+            const noCoverIndex = covers.indexOf('no-cover.png');
             if (noCoverIndex !== -1) {
                 covers.splice(noCoverIndex, 1);
-                const noCoverElement = Array.from(container.children).find(child => child.querySelector('img').alt === '../no-cover.png');
+                const noCoverElement = Array.from(container.children).find(child => child.querySelector('img').alt === 'no-cover.png');
                 if (noCoverElement) {
                     container.removeChild(noCoverElement);
                 }
