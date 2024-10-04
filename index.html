@@ -14,9 +14,9 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       grid-gap: 40px;
-      padding: 40px;
-      max-width: 100%; /* Ensure the container can expand */
-      margin: 0 auto; /* Center the container */
+      padding: 10px;
+      max-width: 100%;
+      margin: 0 auto;
 	  width: 750px;
     }
 
@@ -27,7 +27,7 @@
       transition: transform 0.3s ease;
       margin: 0;
       padding: 0;
-      border-radius: 10px; /* Rounded corners for the cover */
+      border-radius: 10px; /* Ensure the cover wrapper has rounded corners */
     }
 
     .cover:hover {
@@ -41,23 +41,54 @@
       object-position: center;
       display: block;
       margin: 0;
-      border-radius: 10px; /* Rounded corners for the cover image */
+      border-radius: 10px; /* Ensure the cover has rounded corners */
     }
 	
+	.header-bar {
+		display: flex;
+		background-color: #f0f0f0;
+		padding: 10px 0 0 0;
+		width: 100%;
+	}
+	.header-wrapper {
+		flex: 1;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.header-bar img {
+		max-height: 100px;
+	}
+	label {
+		margin-right: 10px;
+	}
+	input[type="range"] {
+		margin-left: 10px;
+	}
 	
   </style>
 </head>
 <body>
-  
-  <label for="container-width">Container Width:</label>
-  <input type="range" id="container-width" min="300" max="1200" value="750" />
+
+    <div class="header-bar">
+        <div class="header-wrapper">
+            <label for="container-width">Container Width:</label>
+            <input type="range" id="container-width" min="300" max="1200" value="750" />
+        </div>
+        <div class="header-wrapper">
+			<img src="covergrid_logo.png" alt="Header Image" />
+		</div>
+        <div class="header-wrapper">
+			<a href="https://github.com/kmfd/covergrid">https://github.com/kmfd/covergrid</a>
+		</div>
+    </div>
   <div class="container" id="covers"></div>
 
   <script>
     // Function to update the grid container width based on the slider value
     function updateContainerWidth(value) {
         const container = document.querySelector('.container');
-        container.style.width = `${value}px`; // Set the width of the container
+        container.style.width = `${value}px`;
     }
 
     // Event listener for the slider
@@ -110,15 +141,15 @@
         } else {
             // Iterate over the covers array and create elements for each cover
             covers.forEach(cover => {
-                const newCover = document.createElement('div');
-                newCover.classList.add('cover');
+                const bookCover = document.createElement('div');
+                bookCover.classList.add('cover');
 
                 const img = document.createElement('img');
                 img.src = `covers/${cover}`;
                 img.alt = cover;
 
-                newCover.appendChild(img);
-                container.appendChild(newCover);
+                bookCover.appendChild(img);
+                container.appendChild(bookCover);
             });
         }
 
@@ -146,15 +177,15 @@
             Array.from(files).forEach(file => {
                 const reader = new FileReader();
                 reader.onload = () => {
-                    const newCover = document.createElement('div');
-                    newCover.classList.add('cover');
+                    const bookCover = document.createElement('div');
+                    bookCover.classList.add('cover');
 
                     const img = document.createElement('img');
                     img.src = reader.result;
                     img.alt = file.name;
 
-                    newCover.appendChild(img);
-                    container.appendChild(newCover);
+                    bookCover.appendChild(img);
+                    container.appendChild(bookCover);
                 };
                 reader.readAsDataURL(file);
             });
