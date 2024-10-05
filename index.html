@@ -189,6 +189,8 @@
 			bookCover.appendChild(img);
 			bookCover.appendChild(removeButton); // Append the remove button to the cover
 			container.appendChild(bookCover); // Append the book cover to the container
+			imageUrls.push(src);
+			updateUrl(); // Update the URL after removal
 		};
 
 		// Handle image loading error
@@ -233,7 +235,6 @@ function initializeCovers() {
 
     // Populate imageUrls with images from URL parameters
     imagesFromParams.forEach(src => {
-        imageUrls.push(src); // Add to imageUrls array
         loadImage(src, container); // Load image into the container
     });
 
@@ -312,8 +313,6 @@ function initializeCovers() {
                     const reader = new FileReader();
                     reader.onload = () => {
                         loadImage(reader.result, document.getElementById('covers'));
-                        imageUrls.push(reader.result);
-                        updateUrl();
                     };
                     reader.readAsDataURL(file);
                 });
@@ -321,7 +320,6 @@ function initializeCovers() {
                 // Handle URL drops
                 const url = event.dataTransfer.getData('text/uri-list');
                 loadImage(url, document.getElementById('covers'));
-                imageUrls.push(url);
                 updateUrl();
             } else if (event.dataTransfer.getData('text/plain')) {
                 // Handle plain text drops (if needed)
