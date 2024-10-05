@@ -18,6 +18,9 @@
       max-width: 100%;
       margin: 0 auto;
 	  width: 750px;
+	  transition: transform 0.3s ease;
+	  transform-origin: top center;
+	  scale: 1;
     }
 
     .cover {
@@ -66,6 +69,26 @@
 		margin-left: 10px;
 	}
 	
+	.cover .remove-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: black;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: none; /* Hide by default */
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.cover:hover .remove-button {
+    display: flex; /* Show on hover */
+}
+
   </style>
 </head>
 <body>
@@ -74,6 +97,8 @@
         <div class="header-wrapper">
             <label for="container-width">Container Width:</label>
             <input type="range" id="container-width" min="300" max="1200" value="750" />
+			<label for="zoom-level">Zoom Level:</label>
+			<input type="range" id="zoom-level" min="0.3" max="1.4" step="0.1" value="1" />
         </div>
         <div class="header-wrapper">
 			<img src="covergrid_logo.png" alt="Header Image" />
@@ -83,75 +108,145 @@
 		</div>
     </div>
   <div class="container" id="covers"></div>
-
-  <script>
+  <div id="error-message" style="color: red; text-align: center; margin-top: 20px;"></div>
+  
+ <script>
     // Function to update the grid container width based on the slider value
     function updateContainerWidth(value) {
         const container = document.querySelector('.container');
         container.style.width = `${value}px`;
     }
+	
+	
+	// Function to remove "no-cover.png" if it exists in the container
+	function removeNoCoverImage(container) {
+		const noCoverElement = Array.from(container.children).find(child => child.querySelector('img').alt === 'no-cover.png');
+		if (noCoverElement) {
+			container.removeChild(noCoverElement);
+		}
+	}
 
-    // Event listener for the slider
-    document.getElementById('container-width').addEventListener('input', function () {
-        updateContainerWidth(this.value);
+	// Function to update the zoom level of the covers container
+	function updateZoomLevel(value) {
+		const container = document.querySelector('.container');
+		container.style.transform = `scale(${value})`;
+	}
+
+    // Function to load an image (either data URL or URL)
+    function loadImage(src, container) {
+		
+		removeNoCoverImage(container);
+        const bookCover = document.createElement('div');
+        bookCover.classList.add('cover');
+
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = src; // You can customize the alt text if needed
+
+		// Create the remove button
+		const removeButton = document.createElement('button');
+		removeButton.classList.add('remove-button');
+		removeButton.innerText = 'X'; // Set the text for the button
+
+		// Add event listener to remove the cover
+		removeButton.addEventListener('click', function() {
+			container.removeChild(bookCover);
+			// Also remove the URL from the imageUrls array
+			imageUrls = imageUrls.filter(url => url !== src);
+			updateUrl(); // Update the URL after removal
+		});
+
+		// Handle image loading error
+		img.onerror = function() {
+        const errorMessageDiv = document.getElementById('error-message');
+        errorMessageDiv.innerText = `Image failed to load, possibly source does not allow remote loading. Please check the console or network tab of dev-tools for details.`;
+        errorMessageDiv.style.display = 'block'; // Show the error message
+    };
+
+        bookCover.appendChild(img);
+		bookCover.appendChild(removeButton); // Append the remove button to the cover
+        container.appendChild(bookCover);
+    }
+
+    // Function to get URL parameters
+    function getUrlParams() {
+        const params = new URLSearchParams(window.location.search);
+        const images = [];
+        for (const [key, value] of params.entries()) {
+            if (key.startsWith('image')) {
+                images.push(value);
+            }
+        }
+        return images;
+    }
+
+function initializeCovers() {
+    const container = document.getElementById('covers');
+    const imagesFromParams = getUrlParams();
+
+    // Populate imageUrls with images from URL parameters
+    imagesFromParams.forEach(src => {
+        imageUrls.push(src); // Add to imageUrls array
+        loadImage(src, container); // Load image into the container
     });
 
-    function getCovers() {
-        return fetch('get_covers.php')
-        .then(response => {
-            // Check if the response is OK (status in the range 200-299)
-            if (!response.ok) {
-                console.warn("Error: Resource not found or other error occurred. Status:", response.status);
-                return []; // Return an empty array if the resource is not found
+    if (imagesFromParams.length === 0) {
+        // Fetch covers from the server if no images in URL parameters
+        getCovers().then(covers => {
+            if (covers.length === 0) {
+                loadImage('no-cover.png', container);
+            } else {
+                covers.forEach(cover => loadImage(`covers/${cover}`, container));
             }
-            return response.text(); // Read the response as text first
-        })
-        .then(text => {
-            try {
-                return JSON.parse(text); // Attempt to parse the text as JSON
-            } catch (error) {
-                console.warn("Failed to parse JSON:", error);
-                return []; // Return an empty array if JSON parsing fails
-            }
-        })
-        .catch(error => {
-            console.error("Fetch error:", error);
-            return []; // Return an empty array on fetch error
         });
     }
 
+    // Update the URL with the current imageUrls
+    updateUrl(); // Add this line
+}
+
+
     // Fetch covers from the server
-    getCovers()
-    .then(covers => {
-        const container = document.getElementById('covers');
-
-        // Check if there are no images from the covers directory
-        if (covers.length === 0) {
-            // If no images found, include no-cover.png from the root directory
-            const noCoverElement = document.createElement('div');
-            noCoverElement.classList.add('cover');
-
-            const img = document.createElement('img');
-            img.src = 'no-cover.png';
-            img.alt = 'no-cover.png';
-
-            noCoverElement.appendChild(img);
-            container.appendChild(noCoverElement);
-            covers.push('no-cover.png'); // Add to the array
-        } else {
-            // Iterate over the covers array and create elements for each cover
-            covers.forEach(cover => {
-                const bookCover = document.createElement('div');
-                bookCover.classList.add('cover');
-
-                const img = document.createElement('img');
-                img.src = `covers/${cover}`;
-                img.alt = cover;
-
-                bookCover.appendChild(img);
-                container.appendChild(bookCover);
+    function getCovers() {
+        return fetch('get_covers.php')
+            .then(response => {
+                if (!response.ok) {
+                    console.warn("Error: Resource not found or other error occurred. Status:", response.status);
+                    return [];
+                }
+                return response.text();
+            })
+            .then(text => {
+                try {
+                    return JSON.parse(text);
+                } catch (error) {
+                    console.warn("Failed to parse JSON:", error);
+                    return [];
+                }
+            })
+            .catch(error => {
+                console.error("Fetch error:", error);
+                return [];
             });
-        }
+    }
+
+    // Array to hold image data URLs and regular URLs
+    var imageUrls = [];
+
+    // Initialize covers on page load
+    window.onload = function() {
+        initializeCovers();
+		
+		// Event listener for the grid width slider
+		document.getElementById('container-width').addEventListener('input', function () {
+			updateContainerWidth(this.value);
+		});
+
+		// Event listener for the grid zoom slider
+		document.getElementById('zoom-level').addEventListener('input', function () {
+			updateZoomLevel(this.value);
+		});
+
 
         // Add dragover event to the document
         document.addEventListener('dragover', event => {
@@ -159,59 +254,52 @@
         });
 
         // Add drop event to the document
-		document.addEventListener('drop', event => {
-			event.preventDefault(); // Prevent default behavior
+        document.addEventListener('drop', event => {
+            event.preventDefault(); // Prevent default behavior
 
-			const files = event.dataTransfer.files;
+            const files = event.dataTransfer.files;
 
-			// Remove no-cover.png if present
-			const noCoverIndex = covers.indexOf('no-cover.png');
-			if (noCoverIndex !== -1) {
-				covers.splice(noCoverIndex, 1);
-				const noCoverElement = Array.from(container.children).find(child => child.querySelector('img').alt === 'no-cover.png');
-				if (noCoverElement) {
-					container.removeChild(noCoverElement);
-				}
-			}
+            // Handle dropped files
+            if (files.length > 0) {
+                Array.from(files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        loadImage(reader.result, document.getElementById('covers'));
+                        imageUrls.push(reader.result);
+                        updateUrl();
+                    };
+                    reader.readAsDataURL(file);
+                });
+            } else if (event.dataTransfer.getData('text/uri-list')) {
+                // Handle URL drops
+                const url = event.dataTransfer.getData('text/uri-list');
+                loadImage(url, document.getElementById('covers'));
+                imageUrls.push(url);
+                updateUrl();
+            } else if (event.dataTransfer.getData('text/plain')) {
+                // Handle plain text drops (if needed)
+                const text = event.dataTransfer.getData('text/plain');
+                console.log("Dropped text:", text);
+            }
+        });
+    };
 
-			// Check if files are dropped
-			if (files.length > 0) {
-				Array.from(files).forEach(file => {
-					const reader = new FileReader();
-					reader.onload = () => {
-						const bookCover = document.createElement('div');
-						bookCover.classList.add('cover');
+    // Function to update the URL with image data and URLs
+    function updateUrl() {
+        var baseUrl = window.location.origin + window.location.pathname;
+        var params = new URLSearchParams();
+        imageUrls.forEach((url, index) => {
+            if (url !== 'no-cover.png') {
+                params.append('image' + index, url);
+            }
+        });
+        var newUrl = baseUrl + (params.toString() ? '?' + params.toString() : ''); // Only add params if present
+        window.history.replaceState(null, '', newUrl); // Update the URL without reloading
+    }
+</script>
 
-						const img = document.createElement('img');
-						img.src = reader.result;
-						img.alt = file.name;
 
-						bookCover.appendChild(img);
-						container.appendChild(bookCover);
-					};
-					reader.readAsDataURL(file);
-				});
-			} else if (event.dataTransfer.getData('text/uri-list')) {
-				// Handle URL drops
-				const url = event.dataTransfer.getData('text/uri-list');
-				const bookCover = document.createElement('div');
-				bookCover.classList.add('cover');
 
-				const img = document.createElement('img');
-				img.src = url;
-				img.alt = 'Dropped Image from URL';
 
-				bookCover.appendChild(img);
-				container.appendChild(bookCover);
-			} else if (event.dataTransfer.getData('text/plain')) {
-				// Handle plain text drops (if needed)
-				const text = event.dataTransfer.getData('text/plain');
-				console.log("Dropped text:", text);
-			}
-		});
-
-    })
-    .catch(error => console.error(error));
-  </script>
 </body>
 </html>
