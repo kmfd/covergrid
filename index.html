@@ -159,37 +159,57 @@
         });
 
         // Add drop event to the document
-        document.addEventListener('drop', event => {
-            event.preventDefault(); // Prevent default behavior
+		document.addEventListener('drop', event => {
+			event.preventDefault(); // Prevent default behavior
 
-            const files = event.dataTransfer.files;
+			const files = event.dataTransfer.files;
 
-            // Remove no-cover.png if present
-            const noCoverIndex = covers.indexOf('no-cover.png');
-            if (noCoverIndex !== -1) {
-                covers.splice(noCoverIndex, 1);
-                const noCoverElement = Array.from(container.children).find(child => child.querySelector('img').alt === 'no-cover.png');
-                if (noCoverElement) {
-                    container.removeChild(noCoverElement);
-                }
-            }
+			// Remove no-cover.png if present
+			const noCoverIndex = covers.indexOf('no-cover.png');
+			if (noCoverIndex !== -1) {
+				covers.splice(noCoverIndex, 1);
+				const noCoverElement = Array.from(container.children).find(child => child.querySelector('img').alt === 'no-cover.png');
+				if (noCoverElement) {
+					container.removeChild(noCoverElement);
+				}
+			}
 
-            Array.from(files).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = () => {
-                    const bookCover = document.createElement('div');
-                    bookCover.classList.add('cover');
+			// Check if files are dropped
+			if (files.length > 0) {
+				Array.from(files).forEach(file => {
+					const reader = new FileReader();
+					reader.onload = () => {
+						const bookCover = document.createElement('div');
+						bookCover.classList.add('cover');
 
-                    const img = document.createElement('img');
-                    img.src = reader.result;
-                    img.alt = file.name;
+						const img = document.createElement('img');
+						img.src = reader.result;
+						img.alt = file.name;
 
-                    bookCover.appendChild(img);
-                    container.appendChild(bookCover);
-                };
-                reader.readAsDataURL(file);
-            });
-        });
+						bookCover.appendChild(img);
+						container.appendChild(bookCover);
+					};
+					reader.readAsDataURL(file);
+				});
+			} else if (event.dataTransfer.getData('text/uri-list')) {
+				// Handle URL drops
+				const url = event.dataTransfer.getData('text/uri-list');
+				const bookCover = document.createElement('div');
+				bookCover.classList.add('cover');
+
+				const img = document.createElement('img');
+				img.src = url;
+				img.alt = 'Dropped Image from URL';
+
+				bookCover.appendChild(img);
+				container.appendChild(bookCover);
+			} else if (event.dataTransfer.getData('text/plain')) {
+				// Handle plain text drops (if needed)
+				const text = event.dataTransfer.getData('text/plain');
+				console.log("Dropped text:", text);
+			}
+		});
+
     })
     .catch(error => console.error(error));
   </script>
