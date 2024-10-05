@@ -23,3 +23,11 @@ A simple grid display for images such as book covers or movie posters, trading c
 ## License
 
 This project is licensed under the GNU General Public License v3.0 (GPL-3.0). This means that the source code and any modifications to it must be made available under the same GPL-3.0 license.
+
+## Changelog
+
+### 2024.10.01
+* Accept urls as dropped element to allow dragging in images right from web
+
+### 2024.09.01
+* Initial commit
