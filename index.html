@@ -12,10 +12,10 @@
 
     .container {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      grid-gap: 40px;
-      padding: 10px;
-      max-width: 100%;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      grid-gap: 30px;
+      padding: 10px 10px 0 10px;
+      max-width: 98%;
       margin: 0 auto;
 	  width: 750px;
 	  transition: transform 0.3s ease;
@@ -89,6 +89,33 @@
     display: flex; /* Show on hover */
 }
 
+#error-message {
+    position: absolute; /* Position it absolutely */
+    top: 100px; /* Align to the top */
+    left: 0; /* Align to the left */
+    right: 0; /* Stretch to the right */
+    color: red;
+    text-align: center;
+    margin-top: 20px;
+    opacity: 0; /* Start as transparent */
+    transition: opacity 0.5s ease, visibility 0.5s ease; /* Transition for fading */
+    visibility: hidden; /* Initially hidden */
+    background-color: rgba(255, 255, 255, 0.8); /* Optional: semi-transparent background */
+    padding: 10px; /* Optional: padding for better appearance */
+    z-index: 10; /* Ensure it appears above other content */
+}
+
+#error-message.visible {
+    visibility: visible; /* Make it visible */
+    opacity: 1; /* Fully visible */
+}
+
+.fade-out {
+    opacity: 0; /* Fully transparent */
+    visibility: hidden; /* Hide after fading out */
+}
+
+
   </style>
 </head>
 <body>
@@ -96,9 +123,9 @@
     <div class="header-bar">
         <div class="header-wrapper">
             <label for="container-width">Container Width:</label>
-            <input type="range" id="container-width" min="300" max="1200" value="750" />
+            <input type="range" id="container-width" min="300" max="1800" value="750" />
 			<label for="zoom-level">Zoom Level:</label>
-			<input type="range" id="zoom-level" min="0.3" max="1.4" step="0.1" value="1" />
+			<input type="range" id="zoom-level" min="0.3" max="2.9" step="0.1" value="0.9" />
         </div>
         <div class="header-wrapper">
 			<img src="covergrid_logo.png" alt="Header Image" />
@@ -107,8 +134,8 @@
 			<a href="https://github.com/kmfd/covergrid">https://github.com/kmfd/covergrid</a>
 		</div>
     </div>
-  <div class="container" id="covers"></div>
   <div id="error-message" style="color: red; text-align: center; margin-top: 20px;"></div>
+  <div class="container" id="covers"></div>
   
  <script>
     // Function to update the grid container width based on the slider value
@@ -133,15 +160,16 @@
 	}
 
     // Function to load an image (either data URL or URL)
-    function loadImage(src, container) {
-		
+	function loadImage(src, container) {
 		removeNoCoverImage(container);
-        const bookCover = document.createElement('div');
-        bookCover.classList.add('cover');
+		
+		const img = document.createElement('img');
+		img.src = src;
+		img.alt = src; // You can customize the alt text if needed
 
-        const img = document.createElement('img');
-        img.src = src;
-        img.alt = src; // You can customize the alt text if needed
+		// Create the book cover div
+		const bookCover = document.createElement('div');
+		bookCover.classList.add('cover');
 
 		// Create the remove button
 		const removeButton = document.createElement('button');
@@ -156,17 +184,36 @@
 			updateUrl(); // Update the URL after removal
 		});
 
+		// Handle image loading success
+		img.onload = function() {
+			bookCover.appendChild(img);
+			bookCover.appendChild(removeButton); // Append the remove button to the cover
+			container.appendChild(bookCover); // Append the book cover to the container
+		};
+
 		// Handle image loading error
 		img.onerror = function() {
-        const errorMessageDiv = document.getElementById('error-message');
-        errorMessageDiv.innerText = `Image failed to load, possibly source does not allow remote loading. Please check the console or network tab of dev-tools for details.`;
-        errorMessageDiv.style.display = 'block'; // Show the error message
-    };
+			const errorMessageDiv = document.getElementById('error-message');
+			errorMessageDiv.innerText = `Image failed to load, possibly source does not allow remote loading. Please check the console or network tab of dev-tools for details.`;
+			
+			// Show the error message
+			errorMessageDiv.classList.add('visible'); // Add visible class
 
-        bookCover.appendChild(img);
-		bookCover.appendChild(removeButton); // Append the remove button to the cover
-        container.appendChild(bookCover);
-    }
+			// Fade out the error message after 2 seconds
+			setTimeout(() => {
+				errorMessageDiv.classList.add('fade-out'); // Add fade-out class
+				// Remove the error message after the fade-out transition
+				setTimeout(() => {
+					errorMessageDiv.classList.remove('fade-out'); // Reset for future use
+					errorMessageDiv.classList.remove('visible'); // Reset for future use
+				}, 500); // Match this duration with the CSS transition duration
+			}, 2000); // Show for 2 seconds
+		};
+
+		// Start loading the image
+		img.src = src; // This line is still necessary to trigger the loading
+	}
+
 
     // Function to get URL parameters
     function getUrlParams() {
