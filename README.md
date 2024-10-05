@@ -27,6 +27,9 @@ This project is licensed under the GNU General Public License v3.0 (GPL-3.0). Th
 ## Changelog
 
 ### 2024.10.01
+* Error notification
+* Better grid scaling
+* Do not add images when source unavailable
 * Accept urls as dropped element to allow dragging in images right from web
 
 ### 2024.09.01
