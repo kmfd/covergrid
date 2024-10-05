@@ -138,14 +138,14 @@
   <div class="container" id="covers"></div>
   
  <script>
-    // Function to update the grid container width based on the slider value
+    // grid width control
     function updateContainerWidth(value) {
         const container = document.querySelector('.container');
         container.style.width = `${value}px`;
     }
 	
 	
-	// Function to remove "no-cover.png" if it exists in the container
+	// Function to remove "no-cover.png" if it exists on the grid
 	function removeNoCoverImage(container) {
 		const noCoverElement = Array.from(container.children).find(child => child.querySelector('img').alt === 'no-cover.png');
 		if (noCoverElement) {
@@ -153,7 +153,7 @@
 		}
 	}
 
-	// Function to update the zoom level of the covers container
+	// grid zoom control
 	function updateZoomLevel(value) {
 		const container = document.querySelector('.container');
 		container.style.transform = `scale(${value})`;
@@ -165,7 +165,7 @@
 		
 		const img = document.createElement('img');
 		img.src = src;
-		img.alt = src; // You can customize the alt text if needed
+		img.alt = src;
 
 		// Create the book cover div
 		const bookCover = document.createElement('div');
@@ -174,23 +174,22 @@
 		// Create the remove button
 		const removeButton = document.createElement('button');
 		removeButton.classList.add('remove-button');
-		removeButton.innerText = 'X'; // Set the text for the button
+		removeButton.innerText = 'X';
 
-		// Add event listener to remove the cover
+		// Add event listener to remove the cover from grid and urls list
 		removeButton.addEventListener('click', function() {
 			container.removeChild(bookCover);
-			// Also remove the URL from the imageUrls array
 			imageUrls = imageUrls.filter(url => url !== src);
 			updateUrl(); // Update the URL after removal
 		});
 
-		// Handle image loading success
+		// Image loading success
 		img.onload = function() {
 			bookCover.appendChild(img);
-			bookCover.appendChild(removeButton); // Append the remove button to the cover
-			container.appendChild(bookCover); // Append the book cover to the container
-			imageUrls.push(src);
-			updateUrl(); // Update the URL after removal
+			bookCover.appendChild(removeButton);
+			container.appendChild(bookCover);
+			imageUrls.push(src); // Add the successfully loaded url to the url list
+			updateUrl(); // Update the params with the current urls
 		};
 
 		// Handle image loading error
@@ -198,26 +197,22 @@
 			const errorMessageDiv = document.getElementById('error-message');
 			errorMessageDiv.innerText = `Image failed to load, possibly source does not allow remote loading. Please check the console or network tab of dev-tools for details.`;
 			
-			// Show the error message
-			errorMessageDiv.classList.add('visible'); // Add visible class
-
-			// Fade out the error message after 2 seconds
+			// Show the error message for 2 seconds
+			errorMessageDiv.classList.add('visible');
 			setTimeout(() => {
-				errorMessageDiv.classList.add('fade-out'); // Add fade-out class
-				// Remove the error message after the fade-out transition
+				// Remove the error message and reset
+				errorMessageDiv.classList.add('fade-out');
 				setTimeout(() => {
-					errorMessageDiv.classList.remove('fade-out'); // Reset for future use
-					errorMessageDiv.classList.remove('visible'); // Reset for future use
-				}, 500); // Match this duration with the CSS transition duration
-			}, 2000); // Show for 2 seconds
+					errorMessageDiv.classList.remove('fade-out');
+					errorMessageDiv.classList.remove('visible');
+				}, 500);
+			}, 2000);
 		};
 
 		// Start loading the image
-		img.src = src; // This line is still necessary to trigger the loading
+		img.src = src; // This line actually triggers the loading
 	}
 
-
-    // Function to get URL parameters
     function getUrlParams() {
         const params = new URLSearchParams(window.location.search);
         const images = [];
@@ -233,9 +228,9 @@ function initializeCovers() {
     const container = document.getElementById('covers');
     const imagesFromParams = getUrlParams();
 
-    // Populate imageUrls with images from URL parameters
+    // Populate grid with images from URL parameters
     imagesFromParams.forEach(src => {
-        loadImage(src, container); // Load image into the container
+        loadImage(src, container);
     });
 
     if (imagesFromParams.length === 0) {
@@ -249,8 +244,7 @@ function initializeCovers() {
         });
     }
 
-    // Update the URL with the current imageUrls
-    updateUrl(); // Add this line
+    updateUrl(); // Update the params with the current urls
 }
 
 
@@ -295,19 +289,19 @@ function initializeCovers() {
 			updateZoomLevel(this.value);
 		});
 
-
-        // Add dragover event to the document
+        // Event listener for the dragover event
         document.addEventListener('dragover', event => {
             event.preventDefault(); // Prevent default to allow drop
         });
 
-        // Add drop event to the document
+        // Event listener for the drop event
         document.addEventListener('drop', event => {
-            event.preventDefault(); // Prevent default behavior
-
+            event.preventDefault(); // Prevent default
+			console.log(event.dataTransfer.getData("text/html").toString())
+			console.log(event.dataTransfer.getData('text/uri-list').toString())
             const files = event.dataTransfer.files;
 
-            // Handle dropped files
+            // Handle file drops
             if (files.length > 0) {
                 Array.from(files).forEach(file => {
                     const reader = new FileReader();
@@ -316,8 +310,29 @@ function initializeCovers() {
                     };
                     reader.readAsDataURL(file);
                 });
+            } else if (event.dataTransfer.getData("text/html")) {
+				// Handle image drops
+				html_snippet = event.dataTransfer.getData("text/html"); // No need for .toString()
+
+				// Create a temporary DOM element to parse the HTML
+				const tempDiv = document.createElement('div');
+				tempDiv.innerHTML = html_snippet;
+				// Find all image elements within the parsed HTML
+				const imgElements = tempDiv.querySelectorAll('img');
+
+				// Check if there are any images
+				if (imgElements.length > 0) {
+					    imgElements.forEach((imgElement, index) => {
+							console.log(`Image ${index + 1}: ${imgElement.src}`);
+						});
+	
+					const lastImgElement = imgElements[imgElements.length - 1]; // Get the last img element
+					const url = lastImgElement.src; // Get the src attribute
+					loadImage(url, document.getElementById('covers'));
+					updateUrl();
+				}
             } else if (event.dataTransfer.getData('text/uri-list')) {
-                // Handle URL drops
+                // Handle straightforward URL drops
                 const url = event.dataTransfer.getData('text/uri-list');
                 loadImage(url, document.getElementById('covers'));
                 updateUrl();
