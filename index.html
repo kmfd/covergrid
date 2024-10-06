@@ -311,8 +311,8 @@ function initializeCovers() {
                     reader.readAsDataURL(file);
                 });
             } else if (event.dataTransfer.getData("text/html")) {
-				// Handle image drops
-				html_snippet = event.dataTransfer.getData("text/html"); // No need for .toString()
+				// Handle image or html snippet drops
+				html_snippet = event.dataTransfer.getData("text/html");
 
 				// Create a temporary DOM element to parse the HTML
 				const tempDiv = document.createElement('div');
@@ -320,16 +320,16 @@ function initializeCovers() {
 				// Find all image elements within the parsed HTML
 				const imgElements = tempDiv.querySelectorAll('img');
 
-				// Check if there are any images
+				// Check if there are any images, load all of them
 				if (imgElements.length > 0) {
-					    imgElements.forEach((imgElement, index) => {
-							console.log(`Image ${index + 1}: ${imgElement.src}`);
-						});
-	
-					const lastImgElement = imgElements[imgElements.length - 1]; // Get the last img element
-					const url = lastImgElement.src; // Get the src attribute
-					loadImage(url, document.getElementById('covers'));
-					updateUrl();
+					imgElements.forEach((imgElement, index) => {
+						console.log(`Image ${index + 1}: ${imgElement.src}`);
+						loadImage(imgElement.src, document.getElementById('covers'));
+					});
+
+					//const lastImgElement = imgElements[imgElements.length - 1]; // Get the last img element
+					//const url = lastImgElement.src; // Get the src attribute
+					//updateUrl(); // Update the URL if necessary
 				}
             } else if (event.dataTransfer.getData('text/uri-list')) {
                 // Handle straightforward URL drops
