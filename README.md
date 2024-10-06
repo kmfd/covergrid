@@ -31,6 +31,8 @@ This project is licensed under the GNU General Public License v3.0 (GPL-3.0). Th
 * Better grid scaling
 * Do not add images when source unavailable
 * Accept urls as dropped element to allow dragging in images right from web
+* Allow html snippet drop to allow multi image drop straight from web
+* Button to clear the grid
 
 ### 2024.09.01
 * Initial commit
