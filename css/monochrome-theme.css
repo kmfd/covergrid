@@ -1,0 +1,8 @@
+/* Monochrome Theme Styles */
+body {
+    background-color: #ccc; /* Light gray */
+}
+
+.cover {
+    border: 2px solid #444; /* Medium gray */
+}

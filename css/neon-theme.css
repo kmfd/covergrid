@@ -1,0 +1,8 @@
+/* Neon Theme Styles */
+body {
+	background: radial-gradient(closest-side, #39ff14, #000) 0/ 100% 100em; /* green glow on black  */ 
+}
+
+.cover {
+    border: 2px solid #ff007f; /* Neon pink */
+}

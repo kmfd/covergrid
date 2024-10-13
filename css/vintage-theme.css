@@ -1,0 +1,15 @@
+/* Retro/Vintage Theme Styles */
+
+body {
+    background: radial-gradient(circle at 50% 50%, rgba(255, 182, 193, 0.8), #fce4ec), 
+                radial-gradient(circle at 30% 30%, rgba(255, 20, 147, 0.5), transparent 70%),
+                radial-gradient(circle at 70% 70%, rgba(255, 105, 180, 0.3), transparent 80%);
+    background-blend-mode: overlay;
+}
+
+.cover {
+    border: 2px solid #fce4ec; /* light pink */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 0 20px rgba(255, 0, 127, 0.8), 0 0 40px rgba(255, 0, 127, 0.5);
+    backdrop-filter: blur(10px); /* Blur effect for the background */
+}

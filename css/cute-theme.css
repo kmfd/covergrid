@@ -1,0 +1,16 @@
+/* Cute Pastel Pink Theme Styles */
+body {
+    background-color: #ffccdc; /* Pastel pink */
+    background-image: 
+        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.2) 20%, transparent 20%),
+        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.2) 20%, transparent 20%),
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.2) 20%, transparent 20%);
+    background-size: 100px 100px; /* Size of the polka dots */
+}
+
+.cover {
+    border: 4px solid #ff77a1; /* Light pink */
+    border-image: linear-gradient(45deg, #ff77a1, #ffccdc) 1; /* Gradient */
+    border-width: 4px; /* Border width */
+    border-radius: 10px; /* Rounded corners for covers */
+}
